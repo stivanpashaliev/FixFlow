@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <Folder Include="Common\Exceptions\" />
-    <Folder Include="Data\Seed\" />
     <Folder Include="Services\Interfaces\" />
     <Folder Include="Services\Implementations\" />
   </ItemGroup>
