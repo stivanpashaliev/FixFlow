@@ -1,3 +1,6 @@
+using FixFlow.Web.Data;
+using Microsoft.EntityFrameworkCore;
+
 namespace FixFlow
 {
     public class Program
@@ -8,6 +11,12 @@ namespace FixFlow
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                 ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
+            builder.Services.AddDbContext<FixFlowDbContext>(options =>
+                options.UseSqlServer(connectionString));
 
             var app = builder.Build();
 
