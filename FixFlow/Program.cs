@@ -1,5 +1,7 @@
 
 using FixFlow.Data.Seed;
+using FixFlow.Services.Implementations;
+using FixFlow.Services.Interfaces;
 using FixFlow.Web.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,7 +13,6 @@ namespace FixFlow
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             builder.Services.AddControllersWithViews();
 
             var connectionString = builder.Configuration
@@ -22,16 +23,16 @@ namespace FixFlow
             builder.Services.AddDbContext<FixFlowDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
+            builder.Services.AddScoped<ICustomerService, CustomerService>();
+
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseHsts();
             }
 
-            // Seed sample data only in Development.
             if (app.Environment.IsDevelopment())
             {
                 using var scope = app.Services.CreateScope();

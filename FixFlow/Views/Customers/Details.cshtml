@@ -1,0 +1,35 @@
+﻿@model CustomerDetailsViewModel
+
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<h1 class="mb-4">Customer Details</h1>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success" role="alert">@successMessage</div>
+}
+
+<dl class="row">
+    <dt class="col-sm-3">Full Name</dt>
+    <dd class="col-sm-9">@Model.FullName</dd>
+
+    <dt class="col-sm-3">Phone Number</dt>
+    <dd class="col-sm-9">@Model.PhoneNumber</dd>
+
+    <dt class="col-sm-3">Email</dt>
+    <dd class="col-sm-9">@(Model.Email ?? "Not provided")</dd>
+
+    <dt class="col-sm-3">Created On (UTC)</dt>
+    <dd class="col-sm-9">@Model.CreatedOn.ToString("dd MMM yyyy, HH:mm")</dd>
+
+    <dt class="col-sm-3">Repair Requests</dt>
+    <dd class="col-sm-9">@Model.RepairRequestsCount</dd>
+</dl>
+
+<div class="d-flex gap-2">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to Customers</a>
+</div>
