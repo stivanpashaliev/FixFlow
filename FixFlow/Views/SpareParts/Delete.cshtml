@@ -1,0 +1,36 @@
+@model SparePartDetailsViewModel
+
+@{
+    ViewData["Title"] = "Delete Spare Part";
+}
+
+<h1 class="mb-4">Delete Spare Part</h1>
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger" role="alert">@errorMessage</div>
+}
+
+<p>Part: <strong>@Model.Name</strong></p>
+<p>SKU: @Model.SKU</p>
+<p>Repair requests using this part: @Model.RepairRequestsCount</p>
+
+@if (Model.RepairRequestsCount > 0)
+{
+    <div class="alert alert-warning" role="alert">
+        This spare part is used in repair requests and cannot be deleted.
+    </div>
+    <a asp-action="Details" asp-route-id="@Model.Id"
+       class="btn btn-secondary">Back to Details</a>
+}
+else
+{
+    <div class="alert alert-warning" role="alert">
+        Are you sure you want to permanently delete this spare part?
+    </div>
+
+    <form asp-action="Delete" asp-route-id="@Model.Id" method="post">
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+        <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Cancel</a>
+    </form>
+}

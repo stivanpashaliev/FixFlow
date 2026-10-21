@@ -24,6 +24,7 @@ namespace FixFlow
 
             builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<ITechnicianService, TechnicianService>();
+            builder.Services.AddScoped<ISparePartService, SparePartService>();
 
             var app = builder.Build();
 

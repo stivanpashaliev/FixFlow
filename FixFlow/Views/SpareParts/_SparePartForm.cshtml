@@ -1,0 +1,27 @@
+@model SparePartFormViewModel
+
+<div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+<div class="mb-3">
+    <label asp-for="Name" class="form-label"></label>
+    <input asp-for="Name" class="form-control" maxlength="150" />
+    <span asp-validation-for="Name" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="SKU" class="form-label"></label>
+    <input asp-for="SKU" class="form-control" maxlength="50" />
+    <span asp-validation-for="SKU" class="text-danger"></span>
+</div>
+
+<div class="mb-3">
+    <label asp-for="UnitPrice" class="form-label"></label>
+    <input asp-for="UnitPrice" type="number" min="0.01" step="0.01" class="form-control" />
+    <span asp-validation-for="UnitPrice" class="text-danger"></span>
+</div>
+
+<div class="mb-4">
+    <label asp-for="QuantityInStock" class="form-label"></label>
+    <input asp-for="QuantityInStock" type="number" min="0" step="1" class="form-control" />
+    <span asp-validation-for="QuantityInStock" class="text-danger"></span>
+</div>

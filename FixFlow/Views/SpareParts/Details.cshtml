@@ -1,0 +1,35 @@
+@model SparePartDetailsViewModel
+
+@{
+    ViewData["Title"] = "Spare Part Details";
+}
+
+<h1 class="mb-4">Spare Part Details</h1>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success" role="status">@successMessage</div>
+}
+
+<dl class="row">
+    <dt class="col-sm-3">Part Name</dt>
+    <dd class="col-sm-9">@Model.Name</dd>
+
+    <dt class="col-sm-3">SKU</dt>
+    <dd class="col-sm-9">@Model.SKU</dd>
+
+    <dt class="col-sm-3">Unit Price</dt>
+    <dd class="col-sm-9">@Model.UnitPrice.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Quantity in Stock</dt>
+    <dd class="col-sm-9">@Model.QuantityInStock</dd>
+
+    <dt class="col-sm-3">Repair Requests Using This Part</dt>
+    <dd class="col-sm-9">@Model.RepairRequestsCount</dd>
+</dl>
+
+<div class="d-flex gap-2">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to Spare Parts</a>
+</div>
