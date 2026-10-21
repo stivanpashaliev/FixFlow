@@ -1,0 +1,18 @@
+﻿@model TechnicianFormViewModel
+
+@{
+    ViewData["Title"] = "Add Technician";
+}
+
+<h1 class="mb-4">Add Technician</h1>
+
+<form asp-action="Create" method="post">
+<partial name="_TechnicianForm" model="Model" />
+
+    <button type="submit" class="btn btn-primary">Save Technician</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

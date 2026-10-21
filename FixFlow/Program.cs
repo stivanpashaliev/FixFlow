@@ -1,4 +1,3 @@
-
 using FixFlow.Data.Seed;
 using FixFlow.Services.Implementations;
 using FixFlow.Services.Interfaces;
@@ -24,6 +23,7 @@ namespace FixFlow
                 options.UseSqlServer(connectionString));
 
             builder.Services.AddScoped<ICustomerService, CustomerService>();
+            builder.Services.AddScoped<ITechnicianService, TechnicianService>();
 
             var app = builder.Build();
 

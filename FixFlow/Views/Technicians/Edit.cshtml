@@ -1,0 +1,18 @@
+﻿@model TechnicianFormViewModel
+
+@{
+    ViewData["Title"] = "Edit Technician";
+}
+
+<h1 class="mb-4">Edit Technician</h1>
+
+<form asp-action="Edit" asp-route-id="@(ViewContext.RouteData.Values["id"])" method="post">
+    <partial name="_TechnicianForm" model="Model" />
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
