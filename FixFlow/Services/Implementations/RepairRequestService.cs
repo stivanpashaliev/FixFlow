@@ -2,6 +2,7 @@ using System.Data;
 using FixFlow.Models.Entities;
 using FixFlow.Models.Enums;
 using FixFlow.Services.Interfaces;
+using FixFlow.Common.Rules;
 using FixFlow.ViewModels.RepairRequests;
 using FixFlow.Web.Data;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -41,7 +42,7 @@ public class RepairRequestService : IRepairRequestService
 
     public async Task<RepairRequestDetailsViewModel?> GetDetailsAsync(int id)
     {
-        return await _context.RepairRequests
+        var model = await _context.RepairRequests
             .AsNoTracking()
             .Where(r => r.Id == id)
             .Select(r => new RepairRequestDetailsViewModel
@@ -63,6 +64,27 @@ public class RepairRequestService : IRepairRequestService
                 CompletedOn = r.CompletedOn
             })
             .FirstOrDefaultAsync();
+
+        if (model is null)
+        {
+            return null;
+        }
+
+        model.StatusHistory = await _context.RepairStatusHistories
+            .AsNoTracking()
+            .Where(h => h.RepairRequestId == id)
+            .OrderByDescending(h => h.ChangedOn)
+            .ThenByDescending(h => h.Id)
+            .Select(h => new RepairStatusHistoryItemViewModel
+            {
+                OldStatus = h.OldStatus,
+                NewStatus = h.NewStatus,
+                ChangedOn = h.ChangedOn,
+                Note = h.Note
+            })
+            .ToListAsync();
+
+        return model;
     }
 
     public async Task<RepairRequestFormViewModel?> GetForEditAsync(int id)
@@ -81,6 +103,152 @@ public class RepairRequestService : IRepairRequestService
                 LaborCost = r.LaborCost
             })
             .FirstOrDefaultAsync();
+    }
+
+    public async Task<ChangeRepairStatusViewModel?> GetForStatusChangeAsync(int id)
+    {
+        var model = await _context.RepairRequests
+            .AsNoTracking()
+            .Where(r => r.Id == id)
+            .Select(r => new ChangeRepairStatusViewModel
+            {
+                RepairRequestId = r.Id,
+                DeviceName = r.DeviceName,
+                CurrentStatus = r.Status,
+                ExpectedStatus = r.Status
+            })
+            .FirstOrDefaultAsync();
+
+        if (model is null)
+        {
+            return null;
+        }
+
+        model.AvailableStatuses = RepairStatusRules.GetAllowedNextStatuses(model.CurrentStatus)
+            .Select(status => new SelectListItem(status.ToString(), ((int)status).ToString()))
+            .ToList();
+
+        return model;
+    }
+
+    public async Task<RepairStatusChangeResult> ChangeStatusAsync(
+        int id,
+        ChangeRepairStatusViewModel model)
+    {
+        // Only the URL id and the requested next status are trusted as input.
+        // The current status and business facts always come from the database.
+        if (model.Note?.Trim().Length > FixFlow.Web.Common.Constants.ValidationConstants
+                .RepairStatusHistory.NoteMaxLength)
+        {
+            return RepairStatusChangeResult.InvalidNote;
+        }
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        var repair = await _context.RepairRequests
+            .AsNoTracking()
+            .Where(r => r.Id == id)
+            .Select(r => new
+            {
+                r.Status,
+                r.TechnicianId,
+                r.Diagnosis
+            })
+            .FirstOrDefaultAsync();
+
+        if (repair is null)
+        {
+            return RepairStatusChangeResult.NotFound;
+        }
+
+        if (!model.ExpectedStatus.HasValue || model.ExpectedStatus.Value != repair.Status)
+        {
+            return RepairStatusChangeResult.ConcurrentModification;
+        }
+
+        if (!model.NewStatus.HasValue ||
+            !RepairStatusRules.IsAllowed(repair.Status, model.NewStatus.Value))
+        {
+            return RepairStatusChangeResult.InvalidTransition;
+        }
+
+        var nextStatus = model.NewStatus.Value;
+        var note = NormalizeOptionalText(model.Note);
+
+        if (nextStatus == RepairStatus.Cancelled && note is null)
+        {
+            return RepairStatusChangeResult.CancellationNoteRequired;
+        }
+
+        if ((nextStatus is RepairStatus.InProgress or RepairStatus.Completed) &&
+            !repair.TechnicianId.HasValue)
+        {
+            return RepairStatusChangeResult.MissingTechnician;
+        }
+
+        if (nextStatus == RepairStatus.Completed && string.IsNullOrWhiteSpace(repair.Diagnosis))
+        {
+            return RepairStatusChangeResult.MissingDiagnosis;
+        }
+
+        if (nextStatus == RepairStatus.Cancelled &&
+            await _context.RepairParts.AnyAsync(rp => rp.RepairRequestId == id))
+        {
+            return RepairStatusChangeResult.CannotCancelWithParts;
+        }
+
+        var now = DateTime.UtcNow;
+        var update = _context.RepairRequests
+            .Where(r => r.Id == id && r.Status == repair.Status);
+
+        if (nextStatus is RepairStatus.InProgress or RepairStatus.Completed)
+        {
+            update = update.Where(r => r.TechnicianId != null);
+        }
+
+        if (nextStatus == RepairStatus.Completed)
+        {
+            update = update.Where(r => r.Diagnosis != null && r.Diagnosis.Trim() != "");
+        }
+
+        if (nextStatus == RepairStatus.Cancelled)
+        {
+            update = update.Where(r => !r.RepairParts.Any());
+        }
+
+        int updatedRows;
+        if (nextStatus == RepairStatus.Completed)
+        {
+            updatedRows = await update.ExecuteUpdateAsync(setters => setters
+                .SetProperty(r => r.Status, nextStatus)
+                .SetProperty(r => r.CompletedOn, now));
+        }
+        else
+        {
+            updatedRows = await update.ExecuteUpdateAsync(setters => setters
+                .SetProperty(r => r.Status, nextStatus));
+        }
+
+        if (updatedRows == 0)
+        {
+            bool stillExists = await _context.RepairRequests.AnyAsync(r => r.Id == id);
+            return stillExists
+                ? RepairStatusChangeResult.ConcurrentModification
+                : RepairStatusChangeResult.NotFound;
+        }
+
+        _context.RepairStatusHistories.Add(new RepairStatusHistory
+        {
+            RepairRequestId = id,
+            OldStatus = repair.Status,
+            NewStatus = nextStatus,
+            ChangedOn = now,
+            Note = note
+        });
+
+        await _context.SaveChangesAsync();
+        await transaction.CommitAsync();
+        return RepairStatusChangeResult.Success;
     }
 
     public async Task PopulateDropdownsAsync(
@@ -136,6 +304,14 @@ public class RepairRequestService : IRepairRequestService
             CreatedOn = DateTime.UtcNow
         };
 
+        repair.StatusHistory.Add(new RepairStatusHistory
+        {
+            OldStatus = RepairStatus.New,
+            NewStatus = RepairStatus.New,
+            ChangedOn = repair.CreatedOn,
+            Note = "Repair request registered."
+        });
+
         _context.RepairRequests.Add(repair);
 
         try
@@ -159,10 +335,25 @@ public class RepairRequestService : IRepairRequestService
         int id,
         RepairRequestFormViewModel model)
     {
-        var repair = await _context.RepairRequests.FindAsync(id);
+        var repair = await _context.RepairRequests
+            .AsNoTracking()
+            .Where(r => r.Id == id)
+            .Select(r => new { r.Status, r.TechnicianId })
+            .FirstOrDefaultAsync();
+
         if (repair is null)
         {
             return RepairRequestSaveResult.NotFound;
+        }
+
+        if (!RepairStatusRules.CanEdit(repair.Status))
+        {
+            return RepairRequestSaveResult.ClosedForEditing;
+        }
+
+        if (repair.Status == RepairStatus.InProgress && !model.TechnicianId.HasValue)
+        {
+            return RepairRequestSaveResult.TechnicianRequiredForInProgress;
         }
 
         var validation = await ValidateReferencesAsync(
@@ -173,28 +364,37 @@ public class RepairRequestService : IRepairRequestService
             return validation;
         }
 
-        int? previousTechnicianId = repair.TechnicianId;
-
-        repair.CustomerId = model.CustomerId;
-        repair.TechnicianId = model.TechnicianId;
-        repair.DeviceName = model.DeviceName.Trim();
-        repair.ProblemDescription = model.ProblemDescription.Trim();
-        repair.Diagnosis = NormalizeOptionalText(model.Diagnosis);
-        repair.LaborCost = model.LaborCost;
+        string deviceName = model.DeviceName.Trim();
+        string problemDescription = model.ProblemDescription.Trim();
+        string? diagnosis = NormalizeOptionalText(model.Diagnosis);
 
         try
         {
-            await _context.SaveChangesAsync();
+
+            int updatedRows = await _context.RepairRequests
+                .Where(r => r.Id == id && r.Status == repair.Status)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(r => r.CustomerId, model.CustomerId)
+                    .SetProperty(r => r.TechnicianId, model.TechnicianId)
+                    .SetProperty(r => r.DeviceName, deviceName)
+                    .SetProperty(r => r.ProblemDescription, problemDescription)
+                    .SetProperty(r => r.Diagnosis, diagnosis)
+                    .SetProperty(r => r.LaborCost, model.LaborCost));
+
+            if (updatedRows == 0)
+            {
+                bool stillExists = await _context.RepairRequests.AnyAsync(r => r.Id == id);
+                return stillExists
+                    ? RepairRequestSaveResult.ConcurrentModification
+                    : RepairRequestSaveResult.NotFound;
+            }
+
             return RepairRequestSaveResult.Success;
         }
-        catch (DbUpdateConcurrencyException)
-        {
-            return RepairRequestSaveResult.NotFound;
-        }
-        catch (DbUpdateException ex) when (IsForeignKeyViolation(ex))
+        catch (Exception ex) when (IsForeignKeyViolation(ex))
         {
             var currentValidation = await ValidateReferencesAsync(
-                model.CustomerId, model.TechnicianId, previousTechnicianId);
+                model.CustomerId, model.TechnicianId, repair.TechnicianId);
             if (currentValidation != RepairRequestSaveResult.Success)
             {
                 return currentValidation;
@@ -214,6 +414,11 @@ public class RepairRequestService : IRepairRequestService
         if (repair is null)
         {
             return RepairRequestDeleteResult.NotFound;
+        }
+
+        if (!RepairStatusRules.CanDelete(repair.Status))
+        {
+            return RepairRequestDeleteResult.NotAllowedInCurrentStatus;
         }
 
         bool hasParts = await _context.RepairParts
@@ -277,8 +482,9 @@ public class RepairRequestService : IRepairRequestService
         return string.IsNullOrWhiteSpace(value) ? null : value.Trim();
     }
 
-    private static bool IsForeignKeyViolation(DbUpdateException ex)
+    private static bool IsForeignKeyViolation(Exception ex)
     {
-        return ex.InnerException is SqlException { Number: 547 };
+        return ex is SqlException { Number: 547 } ||
+            ex is DbUpdateException { InnerException: SqlException { Number: 547 } };
     }
 }

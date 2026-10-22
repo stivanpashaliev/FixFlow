@@ -6,5 +6,8 @@ public enum RepairRequestSaveResult
     NotFound,
     InvalidCustomer,
     InvalidTechnician,
-    InactiveTechnician
+    InactiveTechnician,
+    TechnicianRequiredForInProgress,
+    ClosedForEditing,
+    ConcurrentModification
 }

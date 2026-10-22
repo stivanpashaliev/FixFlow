@@ -1,0 +1,44 @@
+@model IReadOnlyList<RepairStatusHistoryItemViewModel>
+
+<section class="mt-4" aria-labelledby="repair-status-history-heading">
+    <h2 id="repair-status-history-heading" class="h4 mb-3">Status History</h2>
+
+    @if (Model.Count == 0)
+    {
+        <p class="text-muted">No status history has been recorded for this repair.</p>
+    }
+    else
+    {
+        <div class="table-responsive mb-4">
+            <table class="table table-striped align-middle">
+                <caption class="visually-hidden">Repair status changes, newest first</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">Changed On (UTC)</th>
+                        <th scope="col">Previous Status</th>
+                        <th scope="col">New Status</th>
+                        <th scope="col">Note</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var entry in Model)
+                    {
+                        <tr>
+                            <td>@entry.ChangedOn.ToString("dd MMM yyyy, HH:mm")</td>
+                            <td>@entry.OldStatus</td>
+                            <td>
+                                @entry.NewStatus
+                                @if (entry.OldStatus == FixFlow.Models.Enums.RepairStatus.New &&
+                                    entry.NewStatus == FixFlow.Models.Enums.RepairStatus.New)
+                                {
+                                    <span class="badge bg-secondary ms-1">Registered</span>
+                                }
+                            </td>
+                            <td style="white-space: pre-wrap">@(entry.Note ?? "—")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>

@@ -11,6 +11,11 @@
     <div class="alert alert-success" role="status">@successMessage</div>
 }
 
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-warning" role="alert">@errorMessage</div>
+}
+
 <dl class="row">
     <dt class="col-sm-3">Device Name</dt>
     <dd class="col-sm-9">@Model.DeviceName</dd>
@@ -67,8 +72,20 @@
     <dd class="col-sm-9"><strong>@Model.TotalCost.ToString("N2")</strong></dd>
 </dl>
 
+<partial name="_RepairStatusHistory" model="Model.StatusHistory" />
+
 <div class="d-flex gap-2 flex-wrap">
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
-    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+    @if (Model.CanChangeStatus)
+    {
+        <a asp-action="ChangeStatus" asp-route-id="@Model.Id" class="btn btn-success">Change Status</a>
+    }
+    @if (Model.CanEdit)
+    {
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    }
+    @if (Model.CanDelete)
+    {
+        <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+    }
     <a asp-action="Index" class="btn btn-secondary">Back to Repair Requests</a>
 </div>

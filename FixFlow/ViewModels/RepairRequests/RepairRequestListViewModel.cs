@@ -1,5 +1,6 @@
-﻿
+
 using FixFlow.Models.Enums;
+using FixFlow.Common.Rules;
 
 namespace FixFlow.ViewModels.RepairRequests;
 
@@ -18,4 +19,8 @@ public class RepairRequestListViewModel
     public decimal TotalCost { get; set; }
 
     public DateTime CreatedOn { get; set; }
+
+    public bool CanEdit => RepairStatusRules.CanEdit(Status);
+
+    public bool CanDelete => RepairStatusRules.CanDelete(Status);
 }

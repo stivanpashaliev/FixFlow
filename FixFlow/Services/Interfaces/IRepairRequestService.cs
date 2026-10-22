@@ -11,6 +11,10 @@ public interface IRepairRequestService
 
     Task<RepairRequestFormViewModel?> GetForEditAsync(int id);
 
+    Task<ChangeRepairStatusViewModel?> GetForStatusChangeAsync(int id);
+
+    Task<RepairStatusChangeResult> ChangeStatusAsync(int id, ChangeRepairStatusViewModel model);
+
     Task PopulateDropdownsAsync(RepairRequestFormViewModel model, int? repairId = null);
 
     Task<(RepairRequestSaveResult Result, int? Id)> CreateAsync(RepairRequestFormViewModel model);

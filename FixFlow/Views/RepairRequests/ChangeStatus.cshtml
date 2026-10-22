@@ -1,0 +1,61 @@
+@model ChangeRepairStatusViewModel
+
+@{
+    ViewData["Title"] = "Change Repair Status";
+}
+
+<h1 class="mb-4">Change Repair Status</h1>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <h2 class="h5">Repair #@Model.RepairRequestId — @Model.DeviceName</h2>
+        <p class="mb-0">Current Status: <strong>@Model.CurrentStatus</strong></p>
+    </div>
+</div>
+
+<form asp-action="ChangeStatus" asp-route-id="@Model.RepairRequestId" method="post">
+    <input asp-for="ExpectedStatus" type="hidden" />
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label asp-for="NewStatus" class="form-label"></label>
+        <select asp-for="NewStatus" asp-items="Model.AvailableStatuses" class="form-select">
+            <option value="">-- Select next status --</option>
+        </select>
+        <span asp-validation-for="NewStatus" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Note" class="form-label"></label>
+        <textarea asp-for="Note" class="form-control" rows="3" maxlength="500"></textarea>
+        <span asp-validation-for="Note" class="text-danger"></span>
+        <div class="form-text">A note is required when cancelling a repair.</div>
+    </div>
+
+    <div class="alert alert-info" role="note">
+        In-progress repairs need an assigned technician. To complete a repair,
+        an assigned technician and a diagnosis are required. Repairs with used
+        parts cannot be cancelled until inventory returns are implemented.
+    </div>
+
+    <button type="submit" class="btn btn-primary">Update Status</button>
+    <a asp-action="Details" asp-route-id="@Model.RepairRequestId" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        (() => {
+            const statusSelect = document.getElementById("NewStatus");
+            const noteInput = document.getElementById("Note");
+            const cancelledStatus = "5";
+
+            function updateNoteRequirement() {
+                noteInput.required = statusSelect.value === cancelledStatus;
+            }
+
+            statusSelect.addEventListener("change", updateNoteRequirement);
+            updateNoteRequirement();
+        })();
+    </script>
+}

@@ -49,10 +49,16 @@ else
                             <div class="d-inline-flex gap-1">
                                 <a asp-action="Details" asp-route-id="@repair.Id"
                                    class="btn btn-sm btn-outline-primary">Details</a>
-                                <a asp-action="Edit" asp-route-id="@repair.Id"
-                                   class="btn btn-sm btn-outline-secondary">Edit</a>
-                                <a asp-action="Delete" asp-route-id="@repair.Id"
-                                   class="btn btn-sm btn-outline-danger">Delete</a>
+                                @if (repair.CanEdit)
+                                {
+                                    <a asp-action="Edit" asp-route-id="@repair.Id"
+                                       class="btn btn-sm btn-outline-secondary">Edit</a>
+                                }
+                                @if (repair.CanDelete)
+                                {
+                                    <a asp-action="Delete" asp-route-id="@repair.Id"
+                                       class="btn btn-sm btn-outline-danger">Delete</a>
+                                }
                             </div>
                         </td>
                     </tr>

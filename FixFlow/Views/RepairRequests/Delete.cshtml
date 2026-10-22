@@ -16,7 +16,12 @@
 <p>Status: @Model.Status</p>
 <p>Parts used (records): @Model.RepairPartsCount</p>
 
-@if (Model.RepairPartsCount > 0)
+@if (!Model.CanDelete)
+{
+    <div class="alert alert-warning" role="alert">Only new repairs can be deleted.</div>
+    <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Back to Details</a>
+}
+else if (Model.RepairPartsCount > 0)
 {
     <div class="alert alert-warning" role="alert">
         This repair uses spare parts and cannot be deleted. Inventory cannot be

@@ -1,4 +1,5 @@
 using FixFlow.Models.Enums;
+using FixFlow.Common.Rules;
 
 namespace FixFlow.ViewModels.RepairRequests;
 
@@ -33,4 +34,13 @@ public class RepairRequestDetailsViewModel
     public DateTime CreatedOn { get; set; }
 
     public DateTime? CompletedOn { get; set; }
+
+    public bool CanChangeStatus => RepairStatusRules.GetAllowedNextStatuses(Status).Count > 0;
+
+    public bool CanEdit => RepairStatusRules.CanEdit(Status);
+
+    public bool CanDelete => RepairStatusRules.CanDelete(Status);
+
+    public IReadOnlyList<RepairStatusHistoryItemViewModel> StatusHistory { get; set; } =
+        new List<RepairStatusHistoryItemViewModel>();
 }

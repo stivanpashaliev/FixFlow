@@ -1,9 +1,10 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 using FixFlow.Web.Common.Constants;
 
 namespace FixFlow.ViewModels.Customers;
 
-public class CustomerFormViewModel
+public class CustomerFormViewModel : IValidatableObject
 {
     [Required(ErrorMessage = "Full name is required.")]
     [StringLength(
@@ -24,4 +25,22 @@ public class CustomerFormViewModel
     [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
     [StringLength(ValidationConstants.Customer.EmailMaxLength)]
     public string? Email { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (FullName is null)
+        {
+            yield break;
+        }
+
+        string normalizedName = FullName.Trim();
+
+        if (normalizedName.Length < ValidationConstants.Customer.FullNameMinLength ||
+            normalizedName.Length > ValidationConstants.Customer.FullNameMaxLength)
+        {
+            yield return new ValidationResult(
+                "Full name must be between 2 and 100 characters after trimming.",
+                new[] { nameof(FullName) });
+        }
+    }
 }
