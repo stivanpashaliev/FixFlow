@@ -1,4 +1,4 @@
-﻿using FixFlow.Services.Interfaces;
+using FixFlow.Services.Interfaces;
 using FixFlow.ViewModels.Technicians;
 using FixFlow.Web.Common.Constants;
 using Microsoft.AspNetCore.Mvc;
@@ -63,6 +63,13 @@ public class TechniciansController : Controller
         ValidateTrimmedFullName(model);
         if (!ModelState.IsValid)
         {
+            // Invalid input must not mask a missing record.
+            var existing = await _technicianService.GetForEditAsync(id);
+            if (existing is null)
+            {
+                return NotFound();
+            }
+
             return View(model);
         }
 

@@ -66,6 +66,13 @@ public class SparePartsController : Controller
     {
         if (!ModelState.IsValid)
         {
+            // Invalid input must not mask a missing record.
+            var existing = await _sparePartService.GetForEditAsync(id);
+            if (existing is null)
+            {
+                return NotFound();
+            }
+
             return View(model);
         }
 

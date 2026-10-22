@@ -9,7 +9,7 @@
 <div class="card mb-4">
     <div class="card-body">
         <h2 class="h5">Repair #@Model.RepairRequestId — @Model.DeviceName</h2>
-        <p class="mb-0">Current Status: <strong>@Model.CurrentStatus</strong></p>
+        <p class="mb-0">Current Status: <partial name="_RepairStatusBadge" model="Model.CurrentStatus" /></p>
     </div>
 </div>
 

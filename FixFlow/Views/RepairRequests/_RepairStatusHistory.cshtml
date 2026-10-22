@@ -25,9 +25,9 @@
                     {
                         <tr>
                             <td>@entry.ChangedOn.ToString("dd MMM yyyy, HH:mm")</td>
-                            <td>@entry.OldStatus</td>
+                            <td><partial name="_RepairStatusBadge" model="entry.OldStatus" /></td>
                             <td>
-                                @entry.NewStatus
+                                <partial name="_RepairStatusBadge" model="entry.NewStatus" />
                                 @if (entry.OldStatus == FixFlow.Models.Enums.RepairStatus.New &&
                                     entry.NewStatus == FixFlow.Models.Enums.RepairStatus.New)
                                 {

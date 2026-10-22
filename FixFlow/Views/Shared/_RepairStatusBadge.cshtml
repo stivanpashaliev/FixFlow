@@ -1,0 +1,15 @@
+@model FixFlow.Models.Enums.RepairStatus
+
+@{
+    string badgeClass = Model switch
+    {
+        FixFlow.Models.Enums.RepairStatus.New => "bg-secondary",
+        FixFlow.Models.Enums.RepairStatus.Diagnosing => "bg-info text-dark",
+        FixFlow.Models.Enums.RepairStatus.InProgress => "bg-primary",
+        FixFlow.Models.Enums.RepairStatus.Completed => "bg-success",
+        FixFlow.Models.Enums.RepairStatus.Delivered => "bg-dark",
+        FixFlow.Models.Enums.RepairStatus.Cancelled => "bg-danger",
+        _ => "bg-secondary"
+    };
+}
+<span class="badge @badgeClass">@Model</span>

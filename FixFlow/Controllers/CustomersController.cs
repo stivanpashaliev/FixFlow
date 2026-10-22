@@ -1,4 +1,4 @@
-﻿using FixFlow.Services.Interfaces;
+using FixFlow.Services.Interfaces;
 using FixFlow.ViewModels.Customers;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,6 +60,13 @@ public class CustomersController : Controller
     {
         if (!ModelState.IsValid)
         {
+            // Invalid input must not mask a missing record.
+            var existing = await _customerService.GetForEditAsync(id);
+            if (existing is null)
+            {
+                return NotFound();
+            }
+
             return View(model);
         }
 
