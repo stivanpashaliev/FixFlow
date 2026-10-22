@@ -25,12 +25,13 @@ namespace FixFlow
             builder.Services.AddScoped<ICustomerService, CustomerService>();
             builder.Services.AddScoped<ITechnicianService, TechnicianService>();
             builder.Services.AddScoped<ISparePartService, SparePartService>();
+            builder.Services.AddScoped<IRepairRequestService, RepairRequestService>();
 
             var app = builder.Build();
 
             if (!app.Environment.IsDevelopment())
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler("/Error/Index");
                 app.UseHsts();
             }
 
@@ -53,7 +54,7 @@ namespace FixFlow
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
+                pattern: "{controller=RepairRequests}/{action=Index}/{id?}")
                 .WithStaticAssets();
 
             await app.RunAsync();

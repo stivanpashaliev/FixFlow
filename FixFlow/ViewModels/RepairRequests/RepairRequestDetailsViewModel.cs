@@ -1,4 +1,3 @@
-﻿
 using FixFlow.Models.Enums;
 
 namespace FixFlow.ViewModels.RepairRequests;
@@ -6,6 +5,10 @@ namespace FixFlow.ViewModels.RepairRequests;
 public class RepairRequestDetailsViewModel
 {
     public int Id { get; set; }
+
+    public int CustomerId { get; set; }
+
+    public int? TechnicianId { get; set; }
 
     public string DeviceName { get; set; } = string.Empty;
 
@@ -24,6 +27,8 @@ public class RepairRequestDetailsViewModel
     public decimal PartsCost { get; set; }
 
     public decimal TotalCost => LaborCost + PartsCost;
+
+    public int RepairPartsCount { get; set; }
 
     public DateTime CreatedOn { get; set; }
 

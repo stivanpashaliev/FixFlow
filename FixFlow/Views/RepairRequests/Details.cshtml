@@ -1,0 +1,74 @@
+@model RepairRequestDetailsViewModel
+
+@{
+    ViewData["Title"] = "Repair Request Details";
+}
+
+<h1 class="mb-4">Repair Request #@Model.Id</h1>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success" role="status">@successMessage</div>
+}
+
+<dl class="row">
+    <dt class="col-sm-3">Device Name</dt>
+    <dd class="col-sm-9">@Model.DeviceName</dd>
+
+    <dt class="col-sm-3">Customer</dt>
+    <dd class="col-sm-9">
+        <a asp-controller="Customers" asp-action="Details" asp-route-id="@Model.CustomerId">
+            @Model.CustomerName
+        </a>
+    </dd>
+
+    <dt class="col-sm-3">Technician</dt>
+    <dd class="col-sm-9">
+        @if (Model.TechnicianId.HasValue)
+        {
+            <a asp-controller="Technicians" asp-action="Details" asp-route-id="@Model.TechnicianId.Value">
+                @Model.TechnicianName
+            </a>
+        }
+        else
+        {
+            <span>Unassigned</span>
+        }
+    </dd>
+
+    <dt class="col-sm-3">Status</dt>
+    <dd class="col-sm-9"><span class="badge bg-secondary">@Model.Status</span></dd>
+
+    <dt class="col-sm-3">Problem Description</dt>
+    <dd class="col-sm-9" style="white-space: pre-wrap">@Model.ProblemDescription</dd>
+
+    <dt class="col-sm-3">Diagnosis</dt>
+    <dd class="col-sm-9" style="white-space: pre-wrap">@(Model.Diagnosis ?? "Not provided")</dd>
+
+    <dt class="col-sm-3">Created On (UTC)</dt>
+    <dd class="col-sm-9">@Model.CreatedOn.ToString("dd MMM yyyy, HH:mm")</dd>
+
+    <dt class="col-sm-3">Completed On (UTC)</dt>
+    <dd class="col-sm-9">@(Model.CompletedOn.HasValue ? Model.CompletedOn.Value.ToString("dd MMM yyyy, HH:mm") : "Not completed")</dd>
+</dl>
+
+<h2 class="h4 mt-4 mb-3">Repair Costs</h2>
+<dl class="row">
+    <dt class="col-sm-3">Labor Cost</dt>
+    <dd class="col-sm-9">@Model.LaborCost.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Parts Cost</dt>
+    <dd class="col-sm-9">@Model.PartsCost.ToString("N2")</dd>
+
+    <dt class="col-sm-3">Parts Used (records)</dt>
+    <dd class="col-sm-9">@Model.RepairPartsCount</dd>
+
+    <dt class="col-sm-3">Total Cost</dt>
+    <dd class="col-sm-9"><strong>@Model.TotalCost.ToString("N2")</strong></dd>
+</dl>
+
+<div class="d-flex gap-2 flex-wrap">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    <a asp-action="Delete" asp-route-id="@Model.Id" class="btn btn-outline-danger">Delete</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to Repair Requests</a>
+</div>

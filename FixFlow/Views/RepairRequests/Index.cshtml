@@ -1,0 +1,63 @@
+@model IReadOnlyList<RepairRequestListViewModel>
+
+@{
+    ViewData["Title"] = "Repair Requests";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Repair Requests</h1>
+    <a asp-action="Create" class="btn btn-primary">Add Repair Request</a>
+</div>
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success" role="status">@successMessage</div>
+}
+
+@if (Model.Count == 0)
+{
+    <div class="alert alert-info" role="status">No repair requests have been added yet.</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Repair #</th>
+                    <th>Device</th>
+                    <th>Customer</th>
+                    <th>Technician</th>
+                    <th>Status</th>
+                    <th>Created On (UTC)</th>
+                    <th class="text-end">Total Cost</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var repair in Model)
+                {
+                    <tr>
+                        <td>@repair.Id</td>
+                        <td>@repair.DeviceName</td>
+                        <td>@repair.CustomerName</td>
+                        <td>@(repair.TechnicianName ?? "Unassigned")</td>
+                        <td><span class="badge bg-secondary">@repair.Status</span></td>
+                        <td>@repair.CreatedOn.ToString("dd MMM yyyy, HH:mm")</td>
+                        <td class="text-end">@repair.TotalCost.ToString("N2")</td>
+                        <td class="text-end">
+                            <div class="d-inline-flex gap-1">
+                                <a asp-action="Details" asp-route-id="@repair.Id"
+                                   class="btn btn-sm btn-outline-primary">Details</a>
+                                <a asp-action="Edit" asp-route-id="@repair.Id"
+                                   class="btn btn-sm btn-outline-secondary">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@repair.Id"
+                                   class="btn btn-sm btn-outline-danger">Delete</a>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

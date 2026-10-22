@@ -19,6 +19,7 @@
 
   <ItemGroup>
     <Folder Include="Common\Exceptions\" />
+    <Folder Include="wwwroot\js\" />
   </ItemGroup>
 
 </Project>

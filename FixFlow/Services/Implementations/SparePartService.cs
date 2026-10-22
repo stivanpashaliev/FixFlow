@@ -91,7 +91,6 @@ public class SparePartService : ISparePartService
         }
         catch (DbUpdateException ex) when (IsDuplicateSkuViolation(ex))
         {
-            // A competing request may have saved the same SKU after our check.
             return null;
         }
     }
@@ -162,7 +161,6 @@ public class SparePartService : ISparePartService
         }
         catch (DbUpdateException ex) when (ex.InnerException is SqlException { Number: 547 })
         {
-            // Respect the foreign key even if a repair starts using this part meanwhile.
             return SparePartDeleteResult.UsedInRepairs;
         }
     }

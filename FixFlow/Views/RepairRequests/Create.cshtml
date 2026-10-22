@@ -1,0 +1,28 @@
+@model RepairRequestFormViewModel
+
+@{
+    ViewData["Title"] = "Add Repair Request";
+}
+
+<h1 class="mb-4">Add Repair Request</h1>
+
+@if (!Model.Customers.Any())
+{
+    <div class="alert alert-warning" role="alert">
+        A customer is required before a repair can be created.
+        <a asp-controller="Customers" asp-action="Create">Add Customer</a>
+    </div>
+}
+
+<form asp-action="Create" method="post">
+    <partial name="_RepairRequestForm" model="Model" />
+
+    <button type="submit" class="btn btn-primary" disabled="@(!Model.Customers.Any())">
+        Save Repair Request
+    </button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

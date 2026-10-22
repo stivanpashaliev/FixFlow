@@ -1,0 +1,19 @@
+@model RepairRequestFormViewModel
+
+@{
+    ViewData["Title"] = "Edit Repair Request";
+    var repairId = ViewContext.RouteData.Values["id"];
+}
+
+<h1 class="mb-4">Edit Repair Request</h1>
+
+<form asp-action="Edit" asp-route-id="@repairId" method="post">
+    <partial name="_RepairRequestForm" model="Model" />
+
+    <button type="submit" class="btn btn-primary">Save Changes</button>
+    <a asp-action="Details" asp-route-id="@repairId" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
